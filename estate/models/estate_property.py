@@ -30,3 +30,10 @@ class EstateProperty(models.Model):
                                         ('canceled','Canceled')],
                              default='new', required=True, string='Status', copy=False)
     active = fields.Boolean(default=True)
+    is_available = fields.Boolean(compute='_compute_is_available')
+
+    def _compute_is_available(self):
+        if self.date_availability==False:
+            self.available = False
+        else:
+            self.available = (self.date_availability<=fields.Date.today())
