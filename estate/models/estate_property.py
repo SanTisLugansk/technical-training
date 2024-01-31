@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class EstateProperty(models.Model):
@@ -19,27 +19,60 @@ class EstateProperty(models.Model):
     garage = fields.Boolean()
     garden = fields.Boolean()
     garden_area = fields.Integer(string='Garden area (sqm)')
-    garden_orientation = fields.Selection(selection=[('0', 'North'),
-                                                     ('1', 'East'),
-                                                     ('2', 'South'),
-                                                     ('3', 'West')])
+    garden_orientation = fields.Selection(selection=[('north', 'North'),
+                                                     ('east', 'East'),
+                                                     ('south', 'South'),
+                                                     ('west', 'West')])
     state = fields.Selection(selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
                                         ('offer_accepted', 'Offer accepted'),
                                         ('sold', 'Sold'),
                                         ('canceled', 'Canceled')],
-                             default='new', required=True, string='Status', copy=False)
+                             default='new',
+                             required=True,
+                             string='Status',
+                             copy=False)
     active = fields.Boolean(default=True)
     is_available = fields.Boolean(compute='_compute_is_available')
     property_type_id = fields.Many2one(comodel_name='estate.property.type')
-    salesman = fields.Many2one(comodel_name='res.users', default=lambda self: self.env.user)
+    salesman = fields.Many2one(comodel_name='res.users',
+                               default=lambda self: self.env.user)
     buyer = fields.Many2one(comodel_name='res.partner', copy=False)
     tag_ids = fields.Many2many(comodel_name='estate.property.tag')
-    offer_ids = fields.One2many(comodel_name='estate.property.offer', inverse_name='property_id')
+    offer_ids = fields.One2many(comodel_name='estate.property.offer',
+                                inverse_name='property_id')
+    total_area = fields.Integer(string='Total area (sqm)',
+                                compute='_compute_total_area')
+    best_price = fields.Float(string='Best offer',
+                              compute='_compute_best_offer')
 
     def _compute_is_available(self):
-        # if self.date_availability==False:
-        if not self.date_availability:
-            self.available = False
+        for rec in self:
+            # if rec.date_availability==False:
+            if not rec.date_availability:
+                rec.available = False
+            else:
+                rec.available = (rec.date_availability <= fields.Date.today())
+
+    @api.depends('living_area', 'garden_area')
+    def _compute_total_area(self):
+        for rec in self:
+            rec.total_area = rec.living_area + rec.garden_area
+
+    @api.depends('offer_ids.price')
+    def _compute_best_offer(self):
+        for rec in self:
+            # rec.best_price = 0
+            # for offer in rec.offer_ids:
+            #     if offer.price > rec.best_price:
+            #         rec.best_price = offer.price
+            rec.best_price = max(rec.offer_ids.mapped('price'))
+
+    @api.onchange('garden')
+    def _onchange_garden(self):
+        if self.garden:
+            self.garden_area = 10
+            self.garden_orientation = 'north'
         else:
-            self.available = (self.date_availability <= fields.Date.today())
+            self.garden_area = 0
+            self.garden_orientation = False
