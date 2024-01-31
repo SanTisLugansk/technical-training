@@ -26,14 +26,20 @@ class EstateProperty(models.Model):
     state = fields.Selection(selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
                                         ('offer_accepted', 'Offer accepted'),
-                                        ('sold','Sold'),
-                                        ('canceled','Canceled')],
+                                        ('sold', 'Sold'),
+                                        ('canceled', 'Canceled')],
                              default='new', required=True, string='Status', copy=False)
     active = fields.Boolean(default=True)
     is_available = fields.Boolean(compute='_compute_is_available')
+    property_type_id = fields.Many2one(comodel_name='estate.property.type')
+    salesman = fields.Many2one(comodel_name='res.users', default=lambda self: self.env.user)
+    buyer = fields.Many2one(comodel_name='res.partner', copy=False)
+    tag_ids = fields.Many2many(comodel_name='estate.property.tag')
+    offer_ids = fields.One2many(comodel_name='estate.property.offer', inverse_name='property_id')
 
     def _compute_is_available(self):
-        if self.date_availability==False:
+        # if self.date_availability==False:
+        if not self.date_availability:
             self.available = False
         else:
-            self.available = (self.date_availability<=fields.Date.today())
+            self.available = (self.date_availability <= fields.Date.today())
