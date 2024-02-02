@@ -1,5 +1,6 @@
 import datetime
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class EstatePropertyOffer(models.Model):
@@ -40,3 +41,21 @@ class EstatePropertyOffer(models.Model):
                 date_deadline = rec.date_deadline
             date_interval = date_deadline - create_date
             rec.validity = date_interval.days + 1
+
+    def action_confirm_offer(self):
+        for rec in self:
+            if rec.status == 'accepted':
+                return
+            if self.search_count([('property_id.id', '=', rec.property_id.id),
+                                  ('status', '=', 'accepted')]) > 0:
+                raise UserError(_('There is already an accepted offer, only one can be accepted'))
+            rec.status = 'accepted'
+            rec.property_id.selling_price = rec.price
+            rec.property_id.buyer = rec.partner_id
+
+    def action_cancel_offer(self):
+        for rec in self:
+            if rec.status == 'accepted':
+                rec.property_id.selling_price = 0
+                rec.property_id.buyer = False
+            rec.status = 'refused'

@@ -31,26 +31,39 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <h1>
-                        <field name="name"/>
-                    </h1>
+                    <button name="action_do_sold" type="object" string="Sold"/>
+                    <button name="action_do_cancel" type="object" string="Cancel"/>
                 </header>
-                <h1>
-                    <field name="tag_ids" widget="many2many_tags"/>
-                </h1>
-                <group col="2">
-                    <group>
-                        <field name="property_type_id"/>
-                        <field name="postcode"/>
-                        <field name="date_availability"/>
+                <group col="1">
+                    <header>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </header>
+                    <newline/>
+                    <group col="5">
+                        <div class="o_row" colspan="5">
+                            <h1 colspan="4">
+                                <field name="tag_ids" widget="many2many_tags" colspan="4"/>
+                            </h1>
+                            <button type="action" name="%(estate_property_tag_tree_action)d" string="Open list of tags" class="oe_stat_button"/>
+                        </div>
                     </group>
-                    <group>
-                        <field name="expected_price"/>
-                        <field name="best_price"/>
-                        <field name="selling_price"/>
+                    <newline/>
+                    <group col="2">
+                        <group>
+                            <field name="state"/>
+                            <field name="property_type_id"/>
+                            <field name="postcode"/>
+                            <field name="date_availability"/>
+                        </group>
+                        <group>
+                            <field name="expected_price"/>
+                            <field name="best_price"/>
+                            <field name="selling_price"/>
+                        </group>
                     </group>
-                </group>
-                <notebook>
+                    <notebook>
                     <page string="Description">
                         <group col="1">
                             <field name="description"/>
@@ -61,7 +74,6 @@
                             <field name="garden"/>
                             <field name="garden_area"/>
                             <field name="garden_orientation"/>
-                            <field name="state"/>
                             <field name="total_area"/>
                         </group>
                     </page>
@@ -80,6 +92,7 @@
                         </group>
                     </page>
                 </notebook>
+                </group>
             </form>
         </field>
     </record>
@@ -104,4 +117,5 @@
             </search>
         </field>
     </record>
+
 </odoo>
