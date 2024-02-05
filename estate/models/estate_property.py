@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_is_zero
 
 
 class EstateProperty(models.Model):
@@ -13,7 +14,7 @@ class EstateProperty(models.Model):
                                     copy=False,
                                     default=fields.Date.add(fields.Date.today(), months=3))
     expected_price = fields.Float(required=True)
-    selling_price = fields.Float(readonly=True)
+    selling_price = fields.Float(readonly=True, copy=False)
     bedrooms = fields.Integer(default=2)
     living_area = fields.Integer(string='Living area (sqm)')
     facades = fields.Integer()
@@ -46,6 +47,12 @@ class EstateProperty(models.Model):
                                 compute='_compute_total_area')
     best_price = fields.Float(string='Best offer',
                               compute='_compute_best_offer')
+
+    _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)',
+                         'Price must be greater than zero'),
+                        ('check_selling_price', 'CHECK(selling_price >= 0)',
+                         'Price must be greater than zero')
+                        ]
 
     def _compute_is_available(self):
         for rec in self:
@@ -86,9 +93,19 @@ class EstateProperty(models.Model):
             if rec.state == 'canceled':
                 raise UserError(_('Canceled properties cannot be sold'))
             rec.state = 'sold'
+            rec.selling_price = rec.best_price
 
     def action_do_cancel(self):
         for rec in self:
             if rec.state == 'sold':
                 raise UserError(_('Sold property cannot be canceled'))
             rec.state = 'canceled'
+            rec.selling_price = 0
+
+    @api.constrains('selling_price')
+    def _check_selling_price(self):
+        for rec in self:
+            if rec.selling_price < rec.expected_price * 0.9:
+                # and not float_is_zero(rec.selling_price, precision_digits=2):
+                raise ValidationError(_('The selling price must be least 90% of the expected price! '
+                                        'You must reduce the expected  price if you want to accept this offer'))

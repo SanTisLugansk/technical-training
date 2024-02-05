@@ -12,13 +12,15 @@ class EstatePropertyOffer(models.Model):
                                          ('refused', 'Refused')],
                               copy=False)
     partner_id = fields.Many2one(comodel_name='res.partner',
-                                 string='Partner', reguired=True)
+                                 string='Partner', required=True)
     property_id = fields.Many2one(comodel_name='estate.property',
                                   string='Property', required=True)
     validity = fields.Integer(string='Validity (days)', default=7)
     date_deadline = fields.Date(string='Deadline',
                                 compute='_compute_date_deadline',
                                 inverse='_inverse_deadline_compute_validity')
+
+    _sql_constraints = [('check_price', 'CHECK(price > 0)', 'Price must be greater than zero')]
 
     @api.depends('validity')
     def _compute_date_deadline(self):
