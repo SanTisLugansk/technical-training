@@ -1,11 +1,12 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import float_is_zero
+# from odoo.tools import float_is_zero
 
 
 class EstateProperty(models.Model):
     _name = "estate.property"
     _description = "estate description"
+    _order = "id desc"
 
     name = fields.Char(string='Title', required=True)
     description = fields.Text()

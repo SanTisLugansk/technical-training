@@ -8,16 +8,36 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="estate_property_type_view_tree" model="ir.ui.view">
+        <field name="name">estate.property.type.tree</field>
+        <field name="model">estate.property.type</field>
+        <field name="arch" type="xml">
+            <tree default_order="sequence ASC, name ASC">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="estate_property_type_view_form" model="ir.ui.view">
         <field name="name">estate.property.type.form</field>
         <field name="model">estate.property.type</field>
         <field name="arch" type="xml">
             <form>
-                <header>
-                    <h1>
-                        <field name="name"/>
-                    </h1>
-                </header>
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <notebook>
+                        <page string="Properties">
+                            <field name="type_line_ids" context="{'default_category_id': active_id}">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="expected_price"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>
         </field>
     </record>
