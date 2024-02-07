@@ -9,4 +9,11 @@ class EstatePropertyType(models.Model):
     name = fields.Char(required=True)
     type_line_ids = fields.One2many(comodel_name='estate.property',
                                     inverse_name='property_type_id')
-    sequence = fields.Integer(string='Sequence', default=10, help='Use for sorting. Smaller ones first')
+    sequence = fields.Integer(default=10, help='Use for sorting. Smaller ones first')
+    offer_ids = fields.One2many(comodel_name='estate.property.offer',
+                                inverse_name='property_type_id')
+    offer_count = fields.Integer(compute='_compute_offer_count')
+
+    def _compute_offer_count(self):
+        for rec in self:
+            rec.offer_count = len(rec.offer_ids)

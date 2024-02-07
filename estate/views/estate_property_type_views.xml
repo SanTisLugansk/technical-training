@@ -8,6 +8,14 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="estate_property_offer_action_view_tree" model="ir.actions.act_window">
+        <field name="type">ir.actions.act_window</field>
+        <field name="name">offer</field>
+        <field name="res_model">estate.property.offer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('property_type_id', '=', active_id)]</field>
+    </record>
+
     <record id="estate_property_type_view_tree" model="ir.ui.view">
         <field name="name">estate.property.type.tree</field>
         <field name="model">estate.property.type</field>
@@ -25,7 +33,17 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <h1><field name="name"/></h1>
+                    <button name="%(estate_property_offer_action_view_tree)d" type="action" class="oe_stat_button" icon="fa-money">
+                        <div class="o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="offer_count"/>
+                            </span>
+                            <span class="o_stat_text">  Offers</span>
+                        </div>
+                    </button>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
                     <notebook>
                         <page string="Properties">
                             <field name="type_line_ids" context="{'default_category_id': active_id}">

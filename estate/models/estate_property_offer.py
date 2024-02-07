@@ -20,6 +20,7 @@ class EstatePropertyOffer(models.Model):
     date_deadline = fields.Date(string='Deadline',
                                 compute='_compute_date_deadline',
                                 inverse='_inverse_deadline_compute_validity')
+    property_type_id = fields.Many2one(related='property_id.property_type_id', store=True)
 
     _sql_constraints = [('check_price', 'CHECK(price > 0)', 'Price must be greater than zero')]
 
@@ -62,3 +63,7 @@ class EstatePropertyOffer(models.Model):
                 rec.property_id.selling_price = 0
                 rec.property_id.buyer = False
             rec.status = 'refused'
+
+    def action_delete_offer(self):
+        for rec in self:
+            rec.unlink()
