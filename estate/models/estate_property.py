@@ -91,6 +91,12 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
+    @api.ondelete(at_uninstall=False)
+    def _ondelete_estate_property(self):
+        for rec in self:
+            if rec.state != 'new' and rec.state != 'canceled':
+                raise ValidationError(_('Only new and canceled properties can be deleted.'))
+
     @api.model_create_multi
     def create(self, vals_list):
         for val in vals_list:
@@ -121,3 +127,15 @@ class EstateProperty(models.Model):
                 # and not float_is_zero(rec.selling_price, precision_digits=2):
                 raise ValidationError(_('The selling price must be least 90% of the expected price! '
                                         'You must reduce the expected  price if you want to accept this offer'))
+
+    def set_state_offer_received(self):
+        for rec in self:
+            rec.state = 'offer_received'
+
+    def is_price_acceptable(self, offer_price):
+        if offer_price == 0:
+            return False
+        for rec in self:
+            if len(rec.offer_ids) > 0 and max(rec.offer_ids.mapped('price')) > offer_price:
+                return False
+        return True

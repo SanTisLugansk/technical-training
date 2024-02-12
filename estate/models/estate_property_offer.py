@@ -1,6 +1,6 @@
 import datetime
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class EstatePropertyOffer(models.Model):
@@ -32,6 +32,15 @@ class EstatePropertyOffer(models.Model):
             else:
                 create_date = rec.create_date
             rec.date_deadline = create_date + datetime.timedelta(days=rec.validity) - datetime.timedelta(days=1)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for val in vals_list:
+            offer_price = val['price']
+            if not self.env['estate.property'].browse(val['property_id']).is_price_acceptable(offer_price):
+                raise ValidationError(_(f'The proposed price of {offer_price} is too low.'))
+            self.env['estate.property'].browse(val['property_id']).set_state_offer_received()
+        return super().create(vals_list)
 
     def _inverse_deadline_compute_validity(self):
         for rec in self:
