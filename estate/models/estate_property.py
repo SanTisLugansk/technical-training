@@ -25,7 +25,9 @@ class EstateProperty(models.Model):
     garden_orientation = fields.Selection(selection=[('north', 'North'),
                                                      ('east', 'East'),
                                                      ('south', 'South'),
-                                                     ('west', 'West')])
+                                                     ('west', 'West')],
+                                      #    copy=False
+                                          )
     state = fields.Selection(selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
                                         ('offer_accepted', 'Offer accepted'),
@@ -88,6 +90,15 @@ class EstateProperty(models.Model):
         else:
             self.garden_area = 0
             self.garden_orientation = False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for val in vals_list:
+            if val['garden'] and val['garden_orientation'] == False:
+                val['garden_orientation'] = 'north'
+            else:
+                val['garden_orientation'] = False
+        return super().create(vals_list)
 
     def action_do_sold(self):
         for rec in self:

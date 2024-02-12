@@ -33,14 +33,16 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <button name="%(estate_property_offer_action_view_tree)d" type="action" class="oe_stat_button" icon="fa-money">
-                        <div class="o_stat_info">
-                            <span class="o_stat_value">
-                                <field name="offer_count"/>
-                            </span>
-                            <span class="o_stat_text">  Offers</span>
-                        </div>
-                    </button>
+                    <div class="oe_button_box" name="button_box" position="before">
+                        <button name="%(estate_property_offer_action_view_tree)d" type="action" class="oe_stat_button" icon="fa-money">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="offer_count"/>
+                                </span>
+                                <span class="o_stat_text">  Offers</span>
+                            </div>
+                        </button>
+                    </div>
                     <h1>
                         <field name="name"/>
                     </h1>
