@@ -26,7 +26,7 @@ class EstateProperty(models.Model):
                                                      ('east', 'East'),
                                                      ('south', 'South'),
                                                      ('west', 'West')],
-                                      #    copy=False
+                                          # copy=False
                                           )
     state = fields.Selection(selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
@@ -51,11 +51,8 @@ class EstateProperty(models.Model):
     best_price = fields.Float(string='Best offer',
                               compute='_compute_best_offer')
 
-    _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)',
-                         'Price must be greater than zero'),
-                        ('check_selling_price', 'CHECK(selling_price >= 0)',
-                         'Price must be greater than zero')
-                        ]
+    _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)', 'Price must be greater than zero'),
+                        ('check_selling_price', 'CHECK(selling_price >= 0)', 'Price must be greater than zero')]
 
     def _compute_is_available(self):
         for rec in self:
@@ -94,13 +91,13 @@ class EstateProperty(models.Model):
     @api.ondelete(at_uninstall=False)
     def _ondelete_estate_property(self):
         for rec in self:
-            if rec.state != 'new' and rec.state != 'canceled':
+            if rec.state not in ('new', 'canceled'):
                 raise ValidationError(_('Only new and canceled properties can be deleted.'))
 
     @api.model_create_multi
     def create(self, vals_list):
         for val in vals_list:
-            if val['garden'] and val['garden_orientation'] == False:
+            if val['garden'] and val['garden_orientation'] is False:
                 val['garden_orientation'] = 'north'
             else:
                 val['garden_orientation'] = False
@@ -136,6 +133,9 @@ class EstateProperty(models.Model):
         if offer_price == 0:
             return False
         for rec in self:
-            if len(rec.offer_ids) > 0 and max(rec.offer_ids.mapped('price')) > offer_price:
-                return False
+            if len(rec.offer_ids) > 0:
+                max_offer = max(rec.offer_ids.mapped('price'))
+                if max_offer > offer_price:
+                    raise ValidationError(_(f'The offer must be higher then {max_offer}'))
+                    # return False
         return True
