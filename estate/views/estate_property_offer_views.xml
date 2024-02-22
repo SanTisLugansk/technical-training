@@ -13,10 +13,11 @@
                 <field name="validity"/>
                 <field name="date_deadline"/>
                 <button name="action_confirm_offer" string=" " type="object" icon="fa-check"
-                        attrs="{'invisible': [('status', '!=', False)]}"/>
+                        attrs="{'invisible': [('status', '=', 'accepted')]}"/>
                 <button name="action_cancel_offer" string=" " type="object" icon="fa-times"
-                        attrs="{'invisible': [('status', '!=', False)]}"/>
+                        attrs="{'invisible': ['|', ('status', '=', 'refused'), ('status', '=', False)]}"/>
                 <field name="status" invisible="1"/>
+                <!-- <field name="status"/> -->
                 <button name="action_delete_offer" string="[del]" type="object" icon="fa-trash-0"/>
             </tree>
         </field>

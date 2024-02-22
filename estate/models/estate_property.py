@@ -1,6 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
-# from odoo.tools import float_is_zero
+from odoo.tools import float_is_zero
 
 
 class EstateProperty(models.Model):
@@ -93,6 +93,7 @@ class EstateProperty(models.Model):
         for rec in self:
             if rec.state not in ('new', 'canceled'):
                 raise ValidationError(_('Only new and canceled properties can be deleted.'))
+                # None
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -105,6 +106,8 @@ class EstateProperty(models.Model):
 
     def action_do_sold(self):
         for rec in self:
+            if rec.buyer.id is False:
+                raise UserError(_('No  accepted offers. To sell you must accept the offer'))
             if rec.state == 'canceled':
                 raise UserError(_('Canceled properties cannot be sold'))
             rec.state = 'sold'
@@ -120,8 +123,8 @@ class EstateProperty(models.Model):
     @api.constrains('selling_price')
     def _check_selling_price(self):
         for rec in self:
-            if rec.state == 'sold' and rec.selling_price < rec.expected_price * 0.9:
-                # and not float_is_zero(rec.selling_price, precision_digits=2):
+            # if rec.state == 'sold' and rec.selling_price < rec.expected_price * 0.9:
+            if rec.selling_price < rec.expected_price * 0.9 and not float_is_zero(rec.selling_price, precision_digits=2):
                 raise ValidationError(_('The selling price must be least 90% of the expected price! '
                                         'You must reduce the expected  price if you want to accept this offer'))
 

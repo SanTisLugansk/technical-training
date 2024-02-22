@@ -63,15 +63,17 @@ class EstatePropertyOffer(models.Model):
                                   ('status', '=', 'accepted')]) > 0:
                 raise UserError(_('There is already an accepted offer, only one can be accepted'))
             rec.status = 'accepted'
-            rec.property_id.selling_price = rec.price
+            # rec.property_id.selling_price = rec.price
             rec.property_id.buyer = rec.partner_id
+            rec.property_id.state = 'offer_accepted'
 
     def action_cancel_offer(self):
         for rec in self:
             if rec.status == 'accepted':
-                rec.property_id.selling_price = 0
+                # rec.property_id.selling_price = 0
                 rec.property_id.buyer = False
             rec.status = 'refused'
+            rec.property_id.state = 'offer_received'
 
     def action_delete_offer(self):
         for rec in self:
