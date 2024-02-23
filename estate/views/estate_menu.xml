@@ -3,6 +3,7 @@
     <menuitem id="estate_menu_root" name="Real Estate">
         <menuitem id="estate_advertisements_menu" name="Advertisements">
             <menuitem id="estate_property_tree_menu" action="estate_property_tree_action"/>
+            <menuitem id="estate_property_kanban_menu" action="estate_property_kanban_action"/>
         </menuitem>
         <menuitem id="estate_settings_menu" name="Settings">
             <menuitem id="estate_property_type_tree_menu" action="estate_property_type_tree_action"/>
