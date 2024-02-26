@@ -28,28 +28,22 @@ class EstateProperty(models.Model):
                                                      ('west', 'West')],
                                           # copy=False
                                           )
-    state = fields.Selection(selection=[('new', 'New'),
+    state = fields.Selection(default='new', required=True, string='Status', copy=False,
+                             selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
                                         ('offer_accepted', 'Offer accepted'),
                                         ('sold', 'Sold'),
                                         ('canceled', 'Canceled')],
-                             default='new',
-                             required=True,
-                             string='Status',
-                             copy=False)
+                             )
     active = fields.Boolean(default=True)
     is_available = fields.Boolean(compute='_compute_is_available')
     property_type_id = fields.Many2one(comodel_name='estate.property.type')
-    salesman = fields.Many2one(comodel_name='res.users',
-                               default=lambda self: self.env.user)
+    salesman = fields.Many2one(comodel_name='res.users', default=lambda self: self.env.user)
     buyer = fields.Many2one(comodel_name='res.partner', copy=False)
     tag_ids = fields.Many2many(comodel_name='estate.property.tag')
-    offer_ids = fields.One2many(comodel_name='estate.property.offer',
-                                inverse_name='property_id')
-    total_area = fields.Integer(string='Total area (sqm)',
-                                compute='_compute_total_area')
-    best_price = fields.Float(string='Best offer',
-                              compute='_compute_best_offer')
+    offer_ids = fields.One2many(comodel_name='estate.property.offer', inverse_name='property_id')
+    total_area = fields.Integer(string='Total area (sqm)', compute='_compute_total_area')
+    best_price = fields.Float(string='Best offer', compute='_compute_best_offer')
 
     _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)', 'Price must be greater than zero'),
                         ('check_selling_price', 'CHECK(selling_price >= 0)', 'Price must be greater than zero')]
@@ -78,6 +72,15 @@ class EstateProperty(models.Model):
                 rec.best_price = max(rec.offer_ids.mapped('price'))
             else:
                 rec.best_price = 0
+
+    @api.constrains('selling_price')
+    def _check_selling_price(self):
+        for rec in self:
+            # if rec.state == 'sold' and rec.selling_price < rec.expected_price * 0.9:
+            if rec.selling_price < rec.expected_price * 0.9 and not float_is_zero(rec.selling_price,
+                                                                                  precision_digits=2):
+                raise ValidationError(_('The selling price must be least 90% of the expected price! '
+                                        'You must reduce the expected  price if you want to accept this offer'))
 
     @api.onchange('garden')
     def _onchange_garden(self):
@@ -120,13 +123,6 @@ class EstateProperty(models.Model):
             rec.state = 'canceled'
             rec.selling_price = 0
 
-    @api.constrains('selling_price')
-    def _check_selling_price(self):
-        for rec in self:
-            # if rec.state == 'sold' and rec.selling_price < rec.expected_price * 0.9:
-            if rec.selling_price < rec.expected_price * 0.9 and not float_is_zero(rec.selling_price, precision_digits=2):
-                raise ValidationError(_('The selling price must be least 90% of the expected price! '
-                                        'You must reduce the expected  price if you want to accept this offer'))
 
     def set_state_offer_received(self):
         for rec in self:
