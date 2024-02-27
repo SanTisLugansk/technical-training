@@ -1,19 +1,29 @@
+# from dateutil.relativedelta import relativedelta
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import float_is_zero
+from odoo.tools import float_compare, float_is_zero
 
 
 class EstateProperty(models.Model):
-    _name = "estate.property"
-    _description = "estate description"
-    _order = "id desc"
 
+    # ---------------------------------------- Private Attributes ---------------------------------
+    _name = "estate.property"
+    _description = "Real Estate Property"
+    _order = "id desc"
+    _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)', 'Price must be greater than zero'),
+                        ('check_selling_price', 'CHECK(selling_price >= 0)', 'Price must be greater than zero')]
+
+    # ---------------------------------------- Default Methods ------------------------------------
+    def _default_date_availability(self):
+        return fields.Date.add(fields.Date.today(), months=3)
+
+    # --------------------------------------- Fields Declaration ----------------------------------
     name = fields.Char(string='Title', required=True)
     description = fields.Text()
     postcode = fields.Char()
-    date_availability = fields.Date(string='Available from',
-                                    copy=False,
-                                    default=fields.Date.add(fields.Date.today(), months=3))
+    date_availability = fields.Date(string='Available from', copy=False,
+                                    default=lambda self: self._default_date_availability())
     expected_price = fields.Float(required=True)
     selling_price = fields.Float(readonly=True, copy=False)
     bedrooms = fields.Integer(default=2)
@@ -28,7 +38,7 @@ class EstateProperty(models.Model):
                                                      ('west', 'West')],
                                           # copy=False
                                           )
-    state = fields.Selection(default='new', required=True, string='Status', copy=False,
+    state = fields.Selection(string='Status', required=True, copy=False, default='new',
                              selection=[('new', 'New'),
                                         ('offer_received', 'Offer received'),
                                         ('offer_accepted', 'Offer accepted'),
@@ -36,25 +46,26 @@ class EstateProperty(models.Model):
                                         ('canceled', 'Canceled')],
                              )
     active = fields.Boolean(default=True)
-    is_available = fields.Boolean(compute='_compute_is_available')
+
+    # is_available = fields.Boolean(compute='_compute_is_available')
     property_type_id = fields.Many2one(comodel_name='estate.property.type')
-    salesman = fields.Many2one(comodel_name='res.users', default=lambda self: self.env.user)
-    buyer = fields.Many2one(comodel_name='res.partner', copy=False)
-    tag_ids = fields.Many2many(comodel_name='estate.property.tag')
-    offer_ids = fields.One2many(comodel_name='estate.property.offer', inverse_name='property_id')
-    total_area = fields.Integer(string='Total area (sqm)', compute='_compute_total_area')
-    best_price = fields.Float(string='Best offer', compute='_compute_best_offer')
+    salesman_id = fields.Many2one(comodel_name='res.users', string="Salesman", default=lambda self: self.env.user)
+    buyer_id = fields.Many2one(comodel_name='res.partner', string="Buyer", readonly=True, copy=False)
+    tag_ids = fields.Many2many(comodel_name='estate.property.tag', string="Tags")
+    offer_ids = fields.One2many(comodel_name='estate.property.offer', inverse_name='property_id', string="Offers")
 
-    _sql_constraints = [('check_expected_price', 'CHECK(expected_price > 0)', 'Price must be greater than zero'),
-                        ('check_selling_price', 'CHECK(selling_price >= 0)', 'Price must be greater than zero')]
+    total_area = fields.Integer(string='Total area (sqm)', compute='_compute_total_area',
+                                help="Total area computed by summing the living area and the garden area",)
+    best_price = fields.Float(string='Best offer', compute='_compute_best_offer', help="Best offer received")
 
-    def _compute_is_available(self):
-        for rec in self:
-            # if rec.date_availability==False:
-            if not rec.date_availability:
-                rec.available = False
-            else:
-                rec.available = (rec.date_availability <= fields.Date.today())
+    # ---------------------------------------- Compute methods ------------------------------------
+    # def _compute_is_available(self):
+    #     for rec in self:
+    #         # if rec.date_availability==False:
+    #         if not rec.date_availability:
+    #             rec.available = False
+    #         else:
+    #             rec.available = (rec.date_availability <= fields.Date.today())
 
     @api.depends('living_area', 'garden_area')
     def _compute_total_area(self):
@@ -64,21 +75,20 @@ class EstateProperty(models.Model):
     @api.depends('offer_ids.price')
     def _compute_best_offer(self):
         for rec in self:
-            # rec.best_price = 0
-            # for offer in rec.offer_ids:
-            #     if offer.price > rec.best_price:
-            #         rec.best_price = offer.price
             if len(rec.offer_ids) > 0:
                 rec.best_price = max(rec.offer_ids.mapped('price'))
             else:
                 rec.best_price = 0
 
+    # ----------------------------------- Constrains and Onchanges --------------------------------
     @api.constrains('selling_price')
     def _check_selling_price(self):
         for rec in self:
             # if rec.state == 'sold' and rec.selling_price < rec.expected_price * 0.9:
-            if rec.selling_price < rec.expected_price * 0.9 and not float_is_zero(rec.selling_price,
-                                                                                  precision_digits=2):
+            if (
+                    not float_is_zero(rec.selling_price, precision_digits=2)
+                    and float_compare(rec.selling_price, rec.expected_price * 0.9) < 0
+            ):
                 raise ValidationError(_('The selling price must be least 90% of the expected price! '
                                         'You must reduce the expected  price if you want to accept this offer'))
 
@@ -91,6 +101,7 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
+    # ------------------------------------------ CRUD Methods -------------------------------------
     @api.ondelete(at_uninstall=False)
     def _ondelete_estate_property(self):
         for rec in self:
@@ -107,9 +118,10 @@ class EstateProperty(models.Model):
                 val['garden_orientation'] = False
         return super().create(vals_list)
 
+    # ---------------------------------------- Action Methods -------------------------------------
     def action_do_sold(self):
         for rec in self:
-            if rec.buyer.id is False:
+            if rec.buyer_id.id is False:
                 raise UserError(_('No  accepted offers. To sell you must accept the offer'))
             if rec.state == 'canceled':
                 raise UserError(_('Canceled properties cannot be sold'))
@@ -123,7 +135,7 @@ class EstateProperty(models.Model):
             rec.state = 'canceled'
             rec.selling_price = 0
 
-
+    # ---------------------------------------- Business Methods -------------------------------------
     def set_state_offer_received(self):
         for rec in self:
             rec.state = 'offer_received'
@@ -132,9 +144,11 @@ class EstateProperty(models.Model):
         if offer_price == 0:
             return False
         for rec in self:
-            if len(rec.offer_ids) > 0:
+            # if len(rec.offer_ids) > 0:
+            if rec.offer_ids:
                 max_offer = max(rec.offer_ids.mapped('price'))
-                if max_offer > offer_price:
+                # if max_offer > offer_price:
+                if float_compare(offer_price, max_offer, precision_digits=2) <= 0:
                     raise ValidationError(_(f'The offer must be higher then {max_offer}'))
                     # return False
         return True

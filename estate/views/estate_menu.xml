@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="estate_menu_root" name="Real Estate">
-        <menuitem id="estate_advertisements_menu" name="Advertisements">
-            <menuitem id="estate_property_tree_menu" action="estate_property_tree_action"/>
-            <menuitem id="estate_property_kanban_menu" action="estate_property_kanban_action"/>
+        <menuitem id="estate_advertisements_menu" name="Advertisements" sequence="10">
+            <menuitem id="estate_property_menu_action_tree" action="estate_property_action_tree" sequence="10"/>
+            <menuitem id="estate_property_menu_action_kanban" action="estate_property_action_kanban" sequence="20"/>
         </menuitem>
-        <menuitem id="estate_settings_menu" name="Settings">
-            <menuitem id="estate_property_type_tree_menu" action="estate_property_type_tree_action"/>
-            <menuitem id="estate_property_tag_tree_menu" action="estate_property_tag_tree_action"/>
+        <menuitem id="estate_settings_menu" name="Settings" sequence="20">
+            <menuitem id="estate_property_type_menu_action_tree" action="estate_property_type_action" sequence="10"/>
+            <menuitem id="estate_property_tag_menu_action_tree" action="estate_property_tag_action" sequence="20"/>
         </menuitem>
     </menuitem>
 </odoo>
