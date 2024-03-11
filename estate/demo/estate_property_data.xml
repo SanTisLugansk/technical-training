@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+   <record id="villa" model="estate.property">
+        <field name="property_type_id" ref="id_residential_h"/>
+        <field name="salesman_id" ref="base.user_admin"/>
+   </record>
+
+    <record id="trailer" model="estate.property">
+        <field name="property_type_id" ref="id_residential_h"/>
+        <field name="salesman_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="space_ship" model="estate.property">
+        <field name="property_type_id" ref="id_industrial"/>
+        <field name="salesman_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="cabin" model="estate.property">
+        <field name="property_type_id" ref="id_residential_a"/>
+        <field name="salesman_id" ref="base.user_admin"/>
+    </record>
+</odoo>

@@ -5,6 +5,11 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
+            <!--
+            <field name="id" position="after">
+                <field name="id" string='ID:' invisible="False"/>
+            </field>
+            -->
             <!-- <notebook position="inside"> -->
             <page name="preferences" position="after">
                 <page name="estate_property" string="Real estate property">

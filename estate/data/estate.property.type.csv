@@ -1,0 +1,7 @@
+"id","name"
+id_residential_a,residential Apartment
+id_residential_h,residential House
+id_residential_c,residential Castle
+id_commercial,commercial
+id_industrial,industrial
+id_land,land

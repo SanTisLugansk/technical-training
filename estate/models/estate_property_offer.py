@@ -50,7 +50,7 @@ class EstatePropertyOffer(models.Model):
             #     date_deadline = fields.Datetime.now() + datetime.timedelta(days=7)
             # else:
             #     date_deadline = rec.date_deadline
-            date_deadline = rec.date_deadline.date() if rec.date_deadline else fields.Datetime.today() + datetime.timedelta(days=7)
+            date_deadline = rec.date_deadline if rec.date_deadline else fields.Datetime.today() + datetime.timedelta(days=7)
 
             rec.validity = (date_deadline - create_date).days + 1
 

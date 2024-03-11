@@ -1,0 +1,5 @@
+"id","name","state","description","postcode","date_availability","expected_price","selling_price","bedrooms","living_area","facades","garage","garden","garden_area","garden_orientation"
+villa,Big Villa,offer_received,A nice and big villa,12345,2020-02-02,1600000,,6,100,4,True,True,100000,south
+trailer,Trailer Home,canceled,Home in a trailer park,54321,1970-01-01,100000,120000,1,10,4,False,True,,
+space_ship,International Space Station,new,Aliens sometimes come visit,----,2030-12-31,45890000,,,,,,,
+cabin,Cozy Cabin,sold,Small cabin by lake,10000,2020-01-01,80000,,1,10,4,False,True,,
