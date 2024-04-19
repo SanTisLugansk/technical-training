@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
-
     <template id="property_and_property_offer_title">
         <h2>
             <span t-field="property.name"/>
